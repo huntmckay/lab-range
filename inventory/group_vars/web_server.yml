@@ -1,0 +1,24 @@
+---
+configuration_file_destination:
+  autofs:
+    master:
+    direct:
+  sudoers: /etc/sudoers.d/{{ username }}
+
+OS_family:
+  centos:
+    packages:
+      install:
+        - vim
+        - tree
+        - nano #this is a placeholder
+       remove:
+        - nano #this is a placeholder
+   debian:
+    packages:
+      install:
+        - vim
+        - tree
+        - nano #this is a placeholder
+       remove:
+        - nano #this is a placeholder
