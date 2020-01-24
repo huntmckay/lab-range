@@ -1,0 +1,11 @@
+---
+range: a
+
+directories:
+
+configuration_file_destination:
+  host:
+  local_repo:
+  sources_list:
+  rsyslog:
+  
