@@ -1,0 +1,50 @@
+---
+- name: verify access to repo or repo mirror it returns a status 200
+  uri:
+    url: "{{ repo | repo_mirror }}"
+  register: repo_status
+  ignore_errors: yes
+
+- name: fail message if repo or repo mirror it returns a status other than 200
+  fail:
+    msg: "DESIGNED FAILURE - there is not a repository or mirror available for package installations"
+  when: repo_status.rc != 200 #(might also have to default to return code 2 if rc wont read GET status)
+  
+- name: configure all centos hosts with range_vars
+  block:
+    
+    - name: add additional repositories
+      template:
+        src: "{{ item }}"
+        dest: "{{ configuration_desitination_local_repo }}"
+      loop: "{{ additional_repo }}"
+    
+    - name: configure rsyslog destination
+      tempate:
+        src: rsyslog.conf.j2
+        dest: /etc/rsyslog.conf
+        
+    - name: configure auditd
+      template:
+        src: audit.rules.j2
+        dest: /etc/audit.d/audit.rules
+        
+    - name: enable the auditd rsyslog plugin
+      lineinfile:
+        path: "{{ configuration_destination_auditsp }}"
+        regexp: 'active = no'
+        line: >-
+          active = yes
+          
+    - name: configure sysctl
+      template:
+        src:
+        dest:
+        
+  when: ansible_distrobution == '(CentOS | RH)'
+  
+  - name: create directories on all hosts
+    file:
+      path: "{{ item }}"
+      state: directory
+     loop: "{{ directories }}"
