@@ -1,0 +1,74 @@
+---
+- name: configure all centos webservers
+  block:
+    
+    - name: install centos packages from range-role list
+      yum:
+        name: "{{ centos.packages.install }}"
+        state: installed
+        
+    - name: remove centos packages from profile-role list
+      yum:
+        name: "{{ centos.packages.remove }}"
+        state: absent
+        
+  when: ansible_distrobution == 'Centos'
+  
+- name: configure all debian webservers
+  block:
+    
+    - name: install debian packages from range-role list
+      yum:
+        name: "{{ debian.packages.install }}"
+        state: installed
+        
+    - name: remove debian packages from profile-role list
+      yum:
+        name: "{{ debian.packages.remove }}"
+        state: absent
+        
+  when: ansible_distrobution == 'debian'
+  
+- name: configure uncomlicated firewall rules on host
+  template:
+    src: "web_server1/ufw_before.j2"
+    dest: "{{ configuration_destination.ufw_rules }}"
+
+- name: configure autofs rules on host
+  template:
+    src: "web_server1/auto.master.j2"
+    dest: "{{ configuration_destination.autofs.master }}"
+    
+- name: enable firewalld
+  service: 
+    name: firewalld
+    state: started
+    
+- name: configure firewalld rules for host access to share server
+  shell: | 
+      sudo firewall-cmd --permanent --zone=public --add-service=nfs
+      sudo firewall-cmd --reload
+      
+- name: create and configure {{ username }} account
+  block:
+    
+    - name: add new user {{ username }}
+      user:
+        name: "{{ username }}"
+        password: "{{ password | password_hash('sha512') }}"
+        groups: wheel, nfsnobody
+        create_home: yes
+        append: yes
+        shell: /bin/bash
+        
+    - name: configure {{ username }} sudo permissions
+      template:
+        src: "web_server1/sudoers.j2"
+        dest: "{{ configuration_destination.sudoers }}
+        
+    - name: generate ssh keys for user
+      
+- name: change root password
+  user:
+    name: root
+    password: "{{ root_password | password_hash('sha512') }}"
