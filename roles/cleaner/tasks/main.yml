@@ -1,0 +1,23 @@
+---
+- name: clear all bash history for ansible user
+  shell:
+    cmd: |
+      cat /dev/null > /home/ansible/.bash_history
+      
+- name: clear all bash history for root
+  shell:
+    cmd: |
+      cat /dev/null > root/.bash_history
+      
+- name: shutdown | reboot host after completing configuration
+  shell:
+    cmd: | 
+     sudo shutdown -ht 30
+  poll: 0
+  async: 1000
+  
+- name: disble the ansible user account
+  user:
+    name: ansible
+    groups: ansible
+    expires: "{{ ansible_date_time.epoch }}"
